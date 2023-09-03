@@ -14,7 +14,22 @@ import java.util.stream.Collectors;
 @Service
 public class SignalService {
 
+    private final Map<Integer, SignalProcessingStrategy> signalProcessingStrategies;
+
+    public SignalService(List<SignalProcessingStrategy> strategies) {
+        this.signalProcessingStrategies = strategies.stream()
+                .collect(Collectors.toMap(
+                        strategy -> strategy.getClass().getAnnotation(SignalType.class).value(),
+                        Function.identity()
+                ));
+    }
+
     public void handleSignal(SignalRequest signalRequest) {
-      //TODO: implement this method
+        SignalProcessingStrategy strategy = signalProcessingStrategies.get(signalRequest.getSignal());
+        if (strategy != null) {
+            strategy.processSignal();
+        } else {
+            throw new SignalNotFoundException();
+        }
     }
 }
